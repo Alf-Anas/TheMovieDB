@@ -12,7 +12,7 @@ interface TheMovieDBGetListMovies {
         @Query("api_key") api_key: String?,
         @Query("language") language: String?,
         @Query("page") page: Int?
-    ): Call<JsonElement>
+    ): Call<ResponseListMovie>
 }
 
 interface TheMovieDBGetListTVShow {

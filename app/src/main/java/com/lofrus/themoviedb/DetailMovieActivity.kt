@@ -1,19 +1,18 @@
 package com.lofrus.themoviedb
 
-import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.view.MenuItem
 import android.view.View
 import android.widget.Toast
+import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.ViewModelProvider
 import com.bumptech.glide.Glide
 import com.bumptech.glide.request.RequestOptions
 import com.lofrus.themoviedb.databinding.ActivityDetailMovieBinding
-import com.lofrus.themoviedb.databinding.MoviesFragmentBinding
-import com.lofrus.themoviedb.fragment.MoviesFragment
-import com.lofrus.themoviedb.fragment.MoviesViewModel
 import com.lofrus.themoviedb.model.MovieEntity
+import com.lofrus.themoviedb.utils.EspressoIdlingResource
 import com.lofrus.themoviedb.viewmodel.DetailViewModel
+import com.lofrus.themoviedb.viewmodel.ViewModelFactory
 
 class DetailMovieActivity : AppCompatActivity() {
 
@@ -31,17 +30,18 @@ class DetailMovieActivity : AppCompatActivity() {
 
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
 
+        val factory = ViewModelFactory.getInstance()
+        viewModel = ViewModelProvider(this, factory)[DetailViewModel::class.java]
+
         val movieEntity = intent.getParcelableExtra<MovieEntity>(DETAIL_MOVIE) as MovieEntity
-
-        viewModel = ViewModelProvider(this).get(DetailViewModel::class.java)
         val typeMovie = movieEntity.type
-
         if (typeMovie == 0) {
             viewModel.setMoviesDetail(movieEntity.id)
         } else if (typeMovie == 1) {
             viewModel.setTVShowDetail(movieEntity.id)
         }
 
+        EspressoIdlingResource.increment()
         viewModel.getMovieDetail().observe(this, { detailMovie ->
             if (detailMovie != null) {
                 binding.detailTVTitle.text = detailMovie.title
@@ -70,11 +70,17 @@ class DetailMovieActivity : AppCompatActivity() {
                     .into(binding.detailIMGBackdrop)
             }
             showProgressBar(false)
+            if (!EspressoIdlingResource.getEspressoIdlingResource().isIdleNow) {
+                EspressoIdlingResource.decrement()
+            }
         })
 
-        viewModel.statusError.observe(this, { status ->
+        viewModel.getStatusError().observe(this, { status ->
             if (status != null) {
                 Toast.makeText(this, status, Toast.LENGTH_SHORT).show()
+                if (!EspressoIdlingResource.getEspressoIdlingResource().isIdleNow) {
+                    EspressoIdlingResource.decrement()
+                }
             }
         })
 

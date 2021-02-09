@@ -10,6 +10,8 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.GridLayoutManager
 import com.lofrus.themoviedb.databinding.MoviesFragmentBinding
 import com.lofrus.themoviedb.model.ListMovieAdapter
+import com.lofrus.themoviedb.utils.EspressoIdlingResource
+import com.lofrus.themoviedb.viewmodel.ViewModelFactory
 
 class MoviesFragment : Fragment() {
 
@@ -39,34 +41,41 @@ class MoviesFragment : Fragment() {
     override fun onActivityCreated(savedInstanceState: Bundle?) {
         super.onActivityCreated(savedInstanceState)
 
+        val factory = ViewModelFactory.getInstance()
+        viewModel = ViewModelProvider(this, factory)[MoviesViewModel::class.java]
+
         adapter = ListMovieAdapter()
         adapter.notifyDataSetChanged()
 
         binding.moviesRV.layoutManager = GridLayoutManager(activity, gridColumn)
         binding.moviesRV.adapter = adapter
 
-        viewModel = ViewModelProvider(this).get(MoviesViewModel::class.java)
         val typeMovie = arguments?.getInt(TYPE, 0)
-
         if (typeMovie == 0) {
             viewModel.setListMovies()
         } else if (typeMovie == 1) {
             viewModel.setListTVShow()
         }
 
+        EspressoIdlingResource.increment()
         viewModel.getListMovie().observe(this, { listMovie ->
             if (listMovie != null) {
                 adapter.setData(listMovie)
             }
+            if (!EspressoIdlingResource.getEspressoIdlingResource().isIdleNow) {
+                EspressoIdlingResource.decrement()
+            }
             showProgressBar(false)
         })
 
-        viewModel.statusError.observe(this, { status ->
+        viewModel.getStatusError().observe(this, { status ->
             if (status != null) {
                 Toast.makeText(activity, status, Toast.LENGTH_SHORT).show()
             }
+            if (!EspressoIdlingResource.getEspressoIdlingResource().isIdleNow) {
+                EspressoIdlingResource.decrement()
+            }
         })
-
     }
 
     private fun showProgressBar(state: Boolean) {

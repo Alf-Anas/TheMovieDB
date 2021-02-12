@@ -13,9 +13,13 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.TheMovieDB"
         tools:ignore="AllowBackup">
-        <activity android:name=".DetailMovieActivity"
-            android:label="@string/app_name_detail"/>
-        <activity android:name=".SplashScreenActivity"
+        <activity android:name=".BookmarkActivity"
+            android:label="@string/app_name_bookmarks" />
+        <activity
+            android:name=".DetailMovieActivity"
+            android:label="@string/app_name_detail" />
+        <activity
+            android:name=".SplashScreenActivity"
             android:theme="@style/Theme.MaterialComponents.Light.NoActionBar">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -23,8 +27,9 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <activity android:name=".MainActivity"
-            android:label="@string/app_name_list_movies"/>
+        <activity
+            android:name=".MainActivity"
+            android:label="@string/app_name_list_movies" />
     </application>
 
 </manifest>

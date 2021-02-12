@@ -1,8 +1,14 @@
 package com.lofrus.themoviedb.data
 
+import android.content.Context
+import com.lofrus.themoviedb.room.MovieBookmarkDatabase
+import com.lofrus.themoviedb.utils.AppExecutors
+
 object Injection {
-    fun provideRepository(): TheMovieDBRepository {
+    fun provideRepository(context: Context): TheMovieDBRepository {
         val remoteDataSource = RemoteDataSource.getInstance()
-        return TheMovieDBRepository.getInstance(remoteDataSource)
+        val localDataSource = LocalDataSource.getInstance(MovieBookmarkDatabase.getAppDatabase(context)!!.movieBookmarkDao())
+        val appExecutors = AppExecutors()
+        return TheMovieDBRepository.getInstance(remoteDataSource, localDataSource, appExecutors)
     }
 }

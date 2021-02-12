@@ -1,31 +1,97 @@
 package com.lofrus.themoviedb.data
 
+import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import com.lofrus.themoviedb.model.DetailMovieEntity
 import com.lofrus.themoviedb.model.MovieEntity
+import com.lofrus.themoviedb.retrofit.ApiResponse
+import com.lofrus.themoviedb.room.MovieBookmarkEntity
+import com.lofrus.themoviedb.utils.AppExecutors
+import com.lofrus.themoviedb.vo.Resource
 
-class TheMovieDBRepository private constructor(private val remoteDataSource: RemoteDataSource) : TheMovieDBDataSource {
+class TheMovieDBRepository private constructor(
+    private val remoteDataSource: RemoteDataSource,
+    private val localDataSource: LocalDataSource,
+    private val appExecutors: AppExecutors
+) :
+    TheMovieDBDataSource {
 
     companion object {
         @Volatile
         private var instance: TheMovieDBRepository? = null
 
-        fun getInstance(remoteData: RemoteDataSource): TheMovieDBRepository =
-                instance ?: synchronized(this) {
-                    instance ?: TheMovieDBRepository(remoteData)
+        fun getInstance(remoteData: RemoteDataSource, localData: LocalDataSource, appExecutors: AppExecutors): TheMovieDBRepository =
+            instance ?: synchronized(this) {
+                instance ?: TheMovieDBRepository(remoteData, localData, appExecutors)
+            }
+    }
+
+    override fun getListMovies(): LiveData<Resource<List<MovieEntity>>> {
+        return object : NetworkBoundResource<List<MovieEntity> , List<MovieEntity>>(appExecutors) {
+            override fun loadFromDB(): LiveData<List<MovieEntity>> {
+                return localDataSource.getListMovies()
+            }
+
+            override fun shouldFetch(data: List<MovieEntity>?): Boolean {
+                return data == null || data.isEmpty()
+            }
+
+            override fun createCall(): LiveData<ApiResponse<List<MovieEntity>>> {
+                return remoteDataSource.getListMovies()
+            }
+
+            override fun saveCallResult(data: List<MovieEntity>) {
+                val movieList = ArrayList<MovieBookmarkEntity>()
+                for (response in data) {
+                    val movieEntity = MovieBookmarkEntity(response.id,
+                        response.type,
+                        response.title,
+                        response.date,
+                        response.rating,
+                        response.poster)
+                    movieList.add(movieEntity)
                 }
+                localDataSource.insertMovieToLocal(movieList)
+            }
+        }.asLiveData()
     }
 
-    override fun setListMovies() {
-        remoteDataSource.setListMovies()
+    override fun getListTVShow(): LiveData<Resource<List<MovieEntity>>> {
+        return object : NetworkBoundResource<List<MovieEntity> , List<MovieEntity>>(appExecutors) {
+            override fun loadFromDB(): LiveData<List<MovieEntity>> {
+                return localDataSource.getListTVShow()
+            }
+
+            override fun shouldFetch(data: List<MovieEntity>?): Boolean {
+                return data == null || data.isEmpty()
+            }
+
+            override fun createCall(): LiveData<ApiResponse<List<MovieEntity>>> {
+                return remoteDataSource.getListTVShow()
+            }
+
+            override fun saveCallResult(data: List<MovieEntity>) {
+                val movieList = ArrayList<MovieBookmarkEntity>()
+                for (response in data) {
+                    val movieEntity = MovieBookmarkEntity(response.id,
+                        response.type,
+                        response.title,
+                        response.date,
+                        response.rating,
+                        response.poster)
+                    movieList.add(movieEntity)
+                }
+                localDataSource.insertMovieToLocal(movieList)
+            }
+        }.asLiveData()
     }
 
-    override fun setListTVShow() {
-        remoteDataSource.setListTVShow()
+    override fun getListMoviesBookmark(): LiveData<List<MovieEntity>> {
+        return localDataSource.getListMoviesBookmark()
     }
 
-    override fun getListMovie(): MutableLiveData<ArrayList<MovieEntity>> {
-        return remoteDataSource.listMovie
+    override fun getListTVShowBookmark(): LiveData<List<MovieEntity>> {
+        return localDataSource.getListTVShowBookmark()
     }
 
     override fun getStatusError(): MutableLiveData<String?> {
@@ -41,7 +107,7 @@ class TheMovieDBRepository private constructor(private val remoteDataSource: Rem
     }
 
     override fun getMovieDetail(): MutableLiveData<DetailMovieEntity> {
-       return remoteDataSource.detailMovie
+        return remoteDataSource.detailMovie
     }
 
 

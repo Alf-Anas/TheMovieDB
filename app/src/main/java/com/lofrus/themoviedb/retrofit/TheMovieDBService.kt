@@ -24,7 +24,7 @@ interface TheMovieDBGetListTVShow {
     ): Call<JsonElement>
 }
 
-interface TheMovieDBGetMovieDetail {//movie/{movie_id}?api_key=<<api_key>>&language=en-US
+interface TheMovieDBGetMovieDetail {
     @GET("movie/{movie_id}")
     fun getMovieDetail(
         @Path("movie_id") movie_id: Int?,
@@ -33,7 +33,7 @@ interface TheMovieDBGetMovieDetail {//movie/{movie_id}?api_key=<<api_key>>&langu
     ): Call<JsonElement>
 }
 
-interface TheMovieDBGetTVShowDetail { //tv/{tv_id}?api_key=<<api_key>>&language=en-US
+interface TheMovieDBGetTVShowDetail {
     @GET("tv/{tv_id}")
     fun getTVShowDetail(
         @Path("tv_id") tv_id: Int?,

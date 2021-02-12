@@ -1,11 +1,13 @@
 package com.lofrus.themoviedb.data
 
 import android.util.Log
+import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import com.google.gson.JsonElement
 import com.lofrus.themoviedb.BuildConfig
 import com.lofrus.themoviedb.model.DetailMovieEntity
 import com.lofrus.themoviedb.model.MovieEntity
+import com.lofrus.themoviedb.retrofit.ApiResponse
 import com.lofrus.themoviedb.retrofit.ResponseListMovie
 import com.lofrus.themoviedb.retrofit.ResultsItemListMovie
 import com.lofrus.themoviedb.retrofit.RetrofitClient
@@ -29,15 +31,24 @@ class RemoteDataSource private constructor() {
             }
     }
 
-    val listMovie = MutableLiveData<ArrayList<MovieEntity>>()
+    val listMovie = MutableLiveData<ApiResponse<List<MovieEntity>>>()
     val detailMovie = MutableLiveData<DetailMovieEntity>()
     var statusError = MutableLiveData<String?>()
-    private val baseURL = "https://api.themoviedb.org/3/"
-    private val posterBaseURL = "https://www.themoviedb.org/t/p/w220_and_h330_face"
-    private val backdropBaseURL = "https://www.themoviedb.org/t/p/w1920_and_h800_multi_faces"
+    private val baseURL = BuildConfig.BaseURL
+    private val posterBaseURL = BuildConfig.PosterBaseURL
+    private val backdropBaseURL = BuildConfig.BackdropBaseURL
     private val authToken = BuildConfig.TheMovieDBToken
 
-    fun setListMovies() {
+    fun ResultsItemListMovie.toMovieEntity() = MovieEntity(
+        id = id,
+        type = type,
+        title = title,
+        date = releaseDate,
+        rating = voteAverage,
+        poster = "$posterBaseURL$posterPath"
+    )
+
+    fun getListMovies(): LiveData<ApiResponse<List<MovieEntity>>> {
         RetrofitClient(baseURL).instanceListMovies.getListMovies(authToken, "en-US", 1)
             .enqueue(
                 object : Callback<ResponseListMovie> {
@@ -51,30 +62,24 @@ class RemoteDataSource private constructor() {
                             for (i in results?.indices!!) {
                                 list.add(results[i].toMovieEntity())
                             }
-                            listMovie.postValue(list)
+                            listMovie.value = ApiResponse.success(list)
                         } else {
                             Log.d("response.isFailed", "Response Not Successful")
-                            statusError.value = "response.isFailed - Response Not Successful"
+                            val emptyList = arrayListOf<MovieEntity>()
+                            listMovie.value = ApiResponse.error("response.isFailed - Response Not Successful", emptyList)
                         }
                     }
 
                     override fun onFailure(call: Call<ResponseListMovie>, t: Throwable) {
                         Log.d("onFailure", t.message.toString())
-                        statusError.value = "onFailure - " + t.message.toString()
+                        val emptyList = arrayListOf<MovieEntity>()
+                        listMovie.value = ApiResponse.error("onFailure - " + t.message.toString(), emptyList)
                     }
                 })
+        return listMovie
     }
 
-    fun ResultsItemListMovie.toMovieEntity() = MovieEntity(
-        id = id,
-        type = type,
-        title = title,
-        date = releaseDate,
-        rating = voteAverage,
-        poster = "$posterBaseURL$posterPath"
-    )
-
-    fun setListTVShow() {
+    fun getListTVShow(): LiveData<ApiResponse<List<MovieEntity>>> {
         RetrofitClient(baseURL).instanceListTVShow.getListTVShow(authToken, "en-US", 1)
             .enqueue(
                 object : Callback<JsonElement> {
@@ -99,22 +104,26 @@ class RemoteDataSource private constructor() {
                                     movieEntity.poster = posterBaseURL + dataJSON.getString("poster_path")
                                     list.add(movieEntity)
                                 }
-                                listMovie.postValue(list)
+                                listMovie.value = ApiResponse.success(list)
                             } catch (e: JSONException) {
                                 Log.d("Exception", e.message.toString())
-                                statusError.value = "Exception - " + e.message.toString()
+                                val emptyList = arrayListOf<MovieEntity>()
+                                listMovie.value = ApiResponse.error("Exception - " + e.message.toString(), emptyList)
                             }
                         } else {
                             Log.d("response.isFailed", "Response Not Successful")
-                            statusError.value = "response.isFailed - Response Not Successful"
+                            val emptyList = arrayListOf<MovieEntity>()
+                            listMovie.value = ApiResponse.error("response.isFailed - Response Not Successful", emptyList)
                         }
                     }
 
                     override fun onFailure(call: Call<JsonElement>, t: Throwable) {
                         Log.d("onFailure", t.message.toString())
-                        statusError.value = "onFailure - " + t.message.toString()
+                        val emptyList = arrayListOf<MovieEntity>()
+                        listMovie.value = ApiResponse.error("onFailure - " + t.message.toString(), emptyList)
                     }
                 })
+        return listMovie
     }
 
     fun setMoviesDetail(movie_id: Int) {

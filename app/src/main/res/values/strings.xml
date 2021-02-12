@@ -6,10 +6,13 @@
 
     <string name="app_name_list_movies">List Movies</string>
     <string name="app_name_detail">Movie\'s Detail</string>
+    <string name="app_name_bookmarks">Bookmarks</string>
     <string name="item_title">Movie Title</string>
     <string name="item_release_date">31 December 2020</string>
     <string name="item_rating">7.8</string>
     <string name="item_genre">Genre, Genre</string>
     <string name="item_overview">Lorem ipsum dolor sit amet</string>
     <string name="item_link">https://</string>
+    <string name="toast_bookmarked">Movie Bookmarked</string>
+    <string name="toast_remove_bookmark">Remove Bookmark</string>
 </resources>

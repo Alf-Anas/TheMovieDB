@@ -1,5 +1,6 @@
 package com.lofrus.themoviedb.viewmodel
 
+import android.content.Context
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import com.lofrus.themoviedb.data.Injection
@@ -12,9 +13,9 @@ class ViewModelFactory private constructor(private val theMovieDBRepository: The
         @Volatile
         private var instance: ViewModelFactory? = null
 
-        fun getInstance(): ViewModelFactory =
+        fun getInstance(context: Context): ViewModelFactory =
                 instance ?: synchronized(this) {
-                    instance ?: ViewModelFactory(Injection.provideRepository())
+                    instance ?: ViewModelFactory(Injection.provideRepository(context))
                 }
     }
 

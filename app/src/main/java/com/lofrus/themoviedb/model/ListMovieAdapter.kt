@@ -1,5 +1,6 @@
 package com.lofrus.themoviedb.model
 
+import android.app.Activity
 import android.content.Intent
 import android.view.LayoutInflater
 import android.view.View
@@ -10,24 +11,38 @@ import com.bumptech.glide.request.RequestOptions
 import com.lofrus.themoviedb.DetailMovieActivity
 import com.lofrus.themoviedb.R
 import com.lofrus.themoviedb.databinding.ItemGridMovieBinding
+import com.lofrus.themoviedb.databinding.ItemRowMovieBinding
+import com.lofrus.themoviedb.fragment.MoviesFragment.Companion.MOVIES_
+import com.lofrus.themoviedb.fragment.MoviesFragment.Companion.MOVIES_BOOKMARK_
+import com.lofrus.themoviedb.fragment.MoviesFragment.Companion.TV_SHOW_
+import com.lofrus.themoviedb.fragment.MoviesFragment.Companion.TV_SHOW_BOOKMARK_
 
-class ListMovieAdapter : RecyclerView.Adapter<ListMovieAdapter.ListViewHolder>() {
+class ListMovieAdapter(private val activity: Activity, typeMovie: Int?) : RecyclerView.Adapter<RecyclerView.ViewHolder>() {
 
+    private val posterWidth = 220
+    private val posterHeight = 330
     private val mData = ArrayList<MovieEntity>()
-    fun setData(items: ArrayList<MovieEntity>) {
+    private var _typeMovie = typeMovie
+
+    fun setData(items: List<MovieEntity>) {
         mData.clear()
         mData.addAll(items)
         notifyDataSetChanged()
     }
 
-    override fun onCreateViewHolder(viewGroup: ViewGroup, i: Int): ListViewHolder {
-        val view: View = LayoutInflater.from(viewGroup.context)
-            .inflate(R.layout.item_grid_movie, viewGroup, false)
-        return ListViewHolder(view)
+    override fun onCreateViewHolder(viewGroup: ViewGroup, i: Int): RecyclerView.ViewHolder {
+        if (_typeMovie == MOVIES_BOOKMARK_ || _typeMovie == TV_SHOW_BOOKMARK_) {
+            return ListViewHolder(LayoutInflater.from(viewGroup.context).inflate(R.layout.item_row_movie, viewGroup, false))
+        }
+        return GridViewHolder(LayoutInflater.from(viewGroup.context).inflate(R.layout.item_grid_movie, viewGroup, false))
     }
 
-    override fun onBindViewHolder(holder: ListViewHolder, position: Int) {
-        holder.bind(mData[position])
+    override fun onBindViewHolder(holder: RecyclerView.ViewHolder, position: Int) {
+        if (_typeMovie == MOVIES_ || _typeMovie == TV_SHOW_) {
+            (holder as GridViewHolder).bind(mData[position])
+        } else if (_typeMovie == MOVIES_BOOKMARK_ || _typeMovie == TV_SHOW_BOOKMARK_) {
+            (holder as ListViewHolder).bind(mData[position])
+        }
     }
 
     override fun getItemCount(): Int {
@@ -35,6 +50,30 @@ class ListMovieAdapter : RecyclerView.Adapter<ListMovieAdapter.ListViewHolder>()
     }
 
     inner class ListViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
+        private val binding = ItemRowMovieBinding.bind(itemView)
+        fun bind(movie: MovieEntity) {
+            binding.itemRowMovieTVTitle.text = movie.title
+            binding.itemRowMovieTVDate.text = movie.date
+            binding.itemRowMovieTVRating.text = movie.rating.toString()
+            Glide.with(itemView.context)
+                .load(movie.poster)
+                .apply(
+                    RequestOptions()
+                        .error(R.drawable.ic_baseline_broken_image_24)
+                        .placeholder(R.drawable.ic_baseline_image_search_24)
+                        .override(posterWidth, posterHeight)
+                )
+                .into(binding.itemRowMovieIMGPoster)
+
+            itemView.setOnClickListener {
+                val setObjectIntent = Intent(activity, DetailMovieActivity::class.java)
+                setObjectIntent.putExtra(DetailMovieActivity.DETAIL_MOVIE, movie)
+                activity.startActivity(setObjectIntent)
+            }
+        }
+    }
+
+    inner class GridViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
         private val binding = ItemGridMovieBinding.bind(itemView)
         fun bind(movie: MovieEntity) {
             binding.itemMovieTVTitle.text = movie.title
@@ -46,14 +85,14 @@ class ListMovieAdapter : RecyclerView.Adapter<ListMovieAdapter.ListViewHolder>()
                     RequestOptions()
                         .error(R.drawable.ic_baseline_broken_image_24)
                         .placeholder(R.drawable.ic_baseline_image_search_24)
-                        .override(220, 330)
+                        .override(posterWidth, posterHeight)
                 )
                 .into(binding.itemMovieIMGPoster)
 
             itemView.setOnClickListener {
-                val setObjectIntent = Intent(itemView.context, DetailMovieActivity::class.java)
+                val setObjectIntent = Intent(activity, DetailMovieActivity::class.java)
                 setObjectIntent.putExtra(DetailMovieActivity.DETAIL_MOVIE, movie)
-                itemView.context.startActivity(setObjectIntent)
+                activity.startActivity(setObjectIntent)
             }
         }
     }

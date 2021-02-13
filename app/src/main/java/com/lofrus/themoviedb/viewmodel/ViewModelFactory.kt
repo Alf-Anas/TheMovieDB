@@ -14,9 +14,9 @@ class ViewModelFactory private constructor(private val theMovieDBRepository: The
         private var instance: ViewModelFactory? = null
 
         fun getInstance(context: Context): ViewModelFactory =
-                instance ?: synchronized(this) {
-                    instance ?: ViewModelFactory(Injection.provideRepository(context))
-                }
+            instance ?: synchronized(this) {
+                instance ?: ViewModelFactory(Injection.provideRepository(context))
+            }
     }
 
     @Suppress("UNCHECKED_CAST")

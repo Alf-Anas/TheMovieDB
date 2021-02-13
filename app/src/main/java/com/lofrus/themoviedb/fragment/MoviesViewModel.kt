@@ -2,36 +2,27 @@ package com.lofrus.themoviedb.fragment
 
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.ViewModel
+import androidx.paging.PagedList
 import com.lofrus.themoviedb.data.TheMovieDBRepository
 import com.lofrus.themoviedb.model.MovieEntity
 import com.lofrus.themoviedb.vo.Resource
 
 class MoviesViewModel(private val theMovieDBRepository: TheMovieDBRepository) : ViewModel() {
 
-    fun getListMovies(): LiveData<Resource<List<MovieEntity>>> {
+    fun getListMovies(): LiveData<Resource<PagedList<MovieEntity>>> {
         return theMovieDBRepository.getListMovies()
     }
 
-    fun getListTVShow(): LiveData<Resource<List<MovieEntity>>> {
+    fun getListTVShow(): LiveData<Resource<PagedList<MovieEntity>>> {
         return theMovieDBRepository.getListTVShow()
     }
 
-    fun getListMoviesBookmark(): LiveData<List<MovieEntity>> {
+    fun getListMoviesBookmark(): LiveData<PagedList<MovieEntity>> {
         return theMovieDBRepository.getListMoviesBookmark()
     }
 
-    fun getListTVShowBookmark(): LiveData<List<MovieEntity>> {
+    fun getListTVShowBookmark(): LiveData<PagedList<MovieEntity>> {
         return theMovieDBRepository.getListTVShowBookmark()
-    }
-
-
-    // For Dummy Unit Testing
-    fun getListMoviesDummy(): List<MovieEntity> {
-        return theMovieDBRepository.getListMoviesDummy()
-    }
-
-    fun getListTVShowDummy(): List<MovieEntity> {
-        return theMovieDBRepository.getListTVShowDummy()
     }
 
 }

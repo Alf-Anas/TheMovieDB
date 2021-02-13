@@ -21,7 +21,6 @@ import org.mockito.junit.MockitoJUnitRunner
 class DetailViewModelTest{
 
     private lateinit var viewModel: DetailViewModel
-    private val dataMovieDummy = DataDummy.generateDummyMovieDetail(0)
 
     @get:Rule
     var instantTaskExecutorRule = InstantTaskExecutorRule()
@@ -38,7 +37,22 @@ class DetailViewModelTest{
     @Before
     fun setUp() {
         viewModel = DetailViewModel(theMovieDBRepository)
-        viewModel.setMoviesDetailDummy(dataMovieDummy)
+    }
+
+    @Test
+    fun testGetStatusError() {
+        val dummyError = DataDummy.generateDummyError()
+        val errorData = MutableLiveData<String?>()
+        errorData.value = dummyError
+
+        `when`(theMovieDBRepository.getStatusError()).thenReturn(errorData)
+        val errorDB = viewModel.getStatusError().value
+        verify(theMovieDBRepository).getStatusError()
+        assertNotNull(errorDB)
+        assertEquals("ERROR!", errorDB)
+
+        viewModel.getStatusError().observeForever(observerError)
+        verify(observerError).onChanged(dummyError)
     }
 
     @Test
@@ -79,50 +93,5 @@ class DetailViewModelTest{
         viewModel.getMovieDetail().observeForever(observer)
         verify(observer).onChanged(dummyMovieDetail)
     }
-
-    @Test
-    fun testGetStatusError() {
-        val dummyError = DataDummy.generateDummyError()
-        val errorData = MutableLiveData<String?>()
-        errorData.value = dummyError
-
-        `when`(theMovieDBRepository.getStatusError()).thenReturn(errorData)
-        val errorDB = viewModel.getStatusError().value
-        verify(theMovieDBRepository).getStatusError()
-        assertNotNull(errorDB)
-        assertEquals("ERROR!", errorDB)
-
-        viewModel.getStatusError().observeForever(observerError)
-        verify(observerError).onChanged(dummyError)
-    }
-
-    @Test
-    fun testSetMoviesDetailDummy() {
-        viewModel.setMoviesDetailDummy(DataDummy.generateDummyMovieDetail(0))
-    }
-
-    @Test
-    fun testSetTVShowDetailDummy() {
-        viewModel.setTVShowDetailDummy(DataDummy.generateDummyMovieDetail(1))
-    }
-
-    @Test
-    fun testGetMovieDetailDummy() {
-        `when`(theMovieDBRepository.getMovieDetailDummy(0)).thenReturn(DataDummy.generateDummyMovieDetail(0) as DetailMovieEntity)
-        val detailMovie = viewModel.getMovieDetailDummy(0)
-        verify(theMovieDBRepository).getMovieDetailDummy(0)
-
-        assertNotNull(detailMovie)
-        assertEquals(dataMovieDummy.id, detailMovie.id)
-        assertEquals(dataMovieDummy.title, detailMovie.title)
-        assertEquals(dataMovieDummy.date, detailMovie.date)
-        assertEquals(dataMovieDummy.genre, detailMovie.genre)
-        assertEquals(dataMovieDummy.rating, detailMovie.rating)
-        assertEquals(dataMovieDummy.poster, detailMovie.poster)
-        assertEquals(dataMovieDummy.backdrop, detailMovie.backdrop)
-        assertEquals(dataMovieDummy.overview, detailMovie.overview)
-        assertEquals(dataMovieDummy.link, detailMovie.link)
-    }
-
 
 }

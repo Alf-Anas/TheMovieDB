@@ -11,7 +11,6 @@ import com.lofrus.themoviedb.retrofit.ApiResponse
 import com.lofrus.themoviedb.retrofit.ResponseListMovie
 import com.lofrus.themoviedb.retrofit.ResultsItemListMovie
 import com.lofrus.themoviedb.retrofit.RetrofitClient
-import com.lofrus.themoviedb.utils.DataDummy
 import org.json.JSONArray
 import org.json.JSONException
 import org.json.JSONObject
@@ -229,23 +228,5 @@ class RemoteDataSource private constructor() {
                 })
     }
 
-    //For Dummy Unit Testing
-    fun getListMoviesDummy(): List<MovieEntity> = DataDummy.generateDummyListMovies()
-
-    fun getListTVShowDummy(): List<MovieEntity> = DataDummy.generateDummyListTVShow()
-
-    private lateinit var movieEntityDetail: DetailMovieEntity
-
-    fun setMoviesDetailDummy(detailMovie: DetailMovieEntity) {
-        this.movieEntityDetail = detailMovie
-    }
-
-    fun setTVShowDetailDummy(detailMovie: DetailMovieEntity) {
-        this.movieEntityDetail = detailMovie
-    }
-
-    fun getMovieDetailDummy(movieID: Int): DetailMovieEntity {
-        return if (movieID == 0) DataDummy.generateDummyMovieDetail(0) else DataDummy.generateDummyMovieDetail(1)
-    }
 }
 

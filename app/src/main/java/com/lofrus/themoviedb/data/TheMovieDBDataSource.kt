@@ -2,19 +2,20 @@ package com.lofrus.themoviedb.data
 
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
+import androidx.paging.PagedList
 import com.lofrus.themoviedb.model.DetailMovieEntity
 import com.lofrus.themoviedb.model.MovieEntity
 import com.lofrus.themoviedb.vo.Resource
 
 interface TheMovieDBDataSource {
 
-    fun getListMovies(): LiveData<Resource<List<MovieEntity>>>
+    fun getListMovies(): LiveData<Resource<PagedList<MovieEntity>>>
 
-    fun getListTVShow(): LiveData<Resource<List<MovieEntity>>>
+    fun getListTVShow(): LiveData<Resource<PagedList<MovieEntity>>>
 
-    fun getListMoviesBookmark(): LiveData<List<MovieEntity>>
+    fun getListMoviesBookmark(): LiveData<PagedList<MovieEntity>>
 
-    fun getListTVShowBookmark(): LiveData<List<MovieEntity>>
+    fun getListTVShowBookmark(): LiveData<PagedList<MovieEntity>>
 
     fun getStatusError(): MutableLiveData<String?>
 

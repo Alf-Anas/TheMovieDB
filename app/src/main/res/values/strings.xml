@@ -14,5 +14,6 @@
     <string name="item_overview">Lorem ipsum dolor sit amet</string>
     <string name="item_link">https://</string>
     <string name="toast_bookmarked">Movie Bookmarked</string>
-    <string name="toast_remove_bookmark">Remove Bookmark</string>
+    <string name="toast_remove_bookmark">Bookmark Removed</string>
+    <string name="tag_undo">Undo</string>
 </resources>

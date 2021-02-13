@@ -1,10 +1,13 @@
 package com.lofrus.themoviedb.model
 
+import android.annotation.SuppressLint
 import android.app.Activity
 import android.content.Intent
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.paging.PagedListAdapter
+import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
 import com.bumptech.glide.request.RequestOptions
@@ -17,17 +20,23 @@ import com.lofrus.themoviedb.fragment.MoviesFragment.Companion.MOVIES_BOOKMARK_
 import com.lofrus.themoviedb.fragment.MoviesFragment.Companion.TV_SHOW_
 import com.lofrus.themoviedb.fragment.MoviesFragment.Companion.TV_SHOW_BOOKMARK_
 
-class ListMovieAdapter(private val activity: Activity, typeMovie: Int?) : RecyclerView.Adapter<RecyclerView.ViewHolder>() {
+class ListMovieAdapter(private val activity: Activity, typeMovie: Int?) : PagedListAdapter<MovieEntity, RecyclerView.ViewHolder>(DIFF_CALLBACK) {
 
     private val posterWidth = 220
     private val posterHeight = 330
-    private val mData = ArrayList<MovieEntity>()
     private var _typeMovie = typeMovie
 
-    fun setData(items: List<MovieEntity>) {
-        mData.clear()
-        mData.addAll(items)
-        notifyDataSetChanged()
+    companion object {
+        private val DIFF_CALLBACK = object : DiffUtil.ItemCallback<MovieEntity>() {
+            override fun areItemsTheSame(oldItem: MovieEntity, newItem: MovieEntity): Boolean {
+                return oldItem.id == newItem.id
+            }
+
+            @SuppressLint("DiffUtilEquals")
+            override fun areContentsTheSame(oldItem: MovieEntity, newItem: MovieEntity): Boolean {
+                return oldItem == newItem
+            }
+        }
     }
 
     override fun onCreateViewHolder(viewGroup: ViewGroup, i: Int): RecyclerView.ViewHolder {
@@ -38,15 +47,14 @@ class ListMovieAdapter(private val activity: Activity, typeMovie: Int?) : Recycl
     }
 
     override fun onBindViewHolder(holder: RecyclerView.ViewHolder, position: Int) {
-        if (_typeMovie == MOVIES_ || _typeMovie == TV_SHOW_) {
-            (holder as GridViewHolder).bind(mData[position])
-        } else if (_typeMovie == MOVIES_BOOKMARK_ || _typeMovie == TV_SHOW_BOOKMARK_) {
-            (holder as ListViewHolder).bind(mData[position])
+        val item = getItem(position)
+        if (item != null) {
+            if (_typeMovie == MOVIES_ || _typeMovie == TV_SHOW_) {
+                (holder as GridViewHolder).bind(item)
+            } else if (_typeMovie == MOVIES_BOOKMARK_ || _typeMovie == TV_SHOW_BOOKMARK_) {
+                (holder as ListViewHolder).bind(item)
+            }
         }
-    }
-
-    override fun getItemCount(): Int {
-        return mData.size
     }
 
     inner class ListViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
@@ -96,5 +104,7 @@ class ListMovieAdapter(private val activity: Activity, typeMovie: Int?) : Recycl
             }
         }
     }
+
+    fun getSwipedData(swipedPosition: Int): MovieEntity? = getItem(swipedPosition)
 }
 

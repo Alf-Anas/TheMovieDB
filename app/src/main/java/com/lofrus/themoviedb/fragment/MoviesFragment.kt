@@ -7,15 +7,23 @@ import android.view.ViewGroup
 import android.widget.Toast
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
+import androidx.paging.PagedList
 import androidx.recyclerview.widget.GridLayoutManager
+import androidx.recyclerview.widget.ItemTouchHelper
 import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.RecyclerView
+import com.google.android.material.snackbar.Snackbar
+import com.lofrus.themoviedb.R
 import com.lofrus.themoviedb.databinding.MoviesFragmentBinding
 import com.lofrus.themoviedb.model.ListMovieAdapter
 import com.lofrus.themoviedb.model.MovieEntity
+import com.lofrus.themoviedb.room.MovieBookmarkDatabase
+import com.lofrus.themoviedb.room.MovieBookmarkEntity
 import com.lofrus.themoviedb.utils.EspressoIdlingResource
 import com.lofrus.themoviedb.viewmodel.ViewModelFactory
 import com.lofrus.themoviedb.vo.Resource
 import com.lofrus.themoviedb.vo.Status
+import kotlin.concurrent.thread
 
 class MoviesFragment : Fragment() {
 
@@ -77,11 +85,13 @@ class MoviesFragment : Fragment() {
                 })
             }
             MOVIES_BOOKMARK_ -> {
+                itemTouchHelper.attachToRecyclerView(binding.moviesRV)
                 viewModel.getListMoviesBookmark().observe(this, { listMovie ->
                     setBookmarkData(listMovie)
                 })
             }
             TV_SHOW_BOOKMARK_ -> {
+                itemTouchHelper.attachToRecyclerView(binding.moviesRV)
                 viewModel.getListTVShowBookmark().observe(this, { listMovie ->
                     setBookmarkData(listMovie)
                 })
@@ -90,9 +100,9 @@ class MoviesFragment : Fragment() {
 
     }
 
-    private fun setBookmarkData(listMovie: List<MovieEntity>?) {
+    private fun setBookmarkData(listMovie: PagedList<MovieEntity>?) {
         if (listMovie != null) {
-            adapter.setData(listMovie)
+            adapter.submitList(listMovie)
         }
         if (!EspressoIdlingResource.getEspressoIdlingResource().isIdleNow) {
             EspressoIdlingResource.decrement()
@@ -100,13 +110,13 @@ class MoviesFragment : Fragment() {
         showProgressBar(false)
     }
 
-    private fun setMovieData(listMovie: Resource<List<MovieEntity>>?) {
+    private fun setMovieData(listMovie: Resource<PagedList<MovieEntity>>?) {
         if (listMovie != null) {
             when (listMovie.status) {
                 Status.LOADING -> showProgressBar(true)
                 Status.SUCCESS -> {
                     showProgressBar(false)
-                    listMovie.data?.let { adapter.setData(it) }
+                    adapter.submitList(listMovie.data)
                 }
                 Status.ERROR -> {
                     showProgressBar(false)
@@ -118,6 +128,52 @@ class MoviesFragment : Fragment() {
             EspressoIdlingResource.decrement()
         }
     }
+
+    private val itemTouchHelper = ItemTouchHelper(object : ItemTouchHelper.Callback() {
+        override fun getMovementFlags(recyclerView: RecyclerView, viewHolder: RecyclerView.ViewHolder): Int =
+            makeMovementFlags(0, ItemTouchHelper.LEFT or ItemTouchHelper.RIGHT)
+
+        override fun onMove(recyclerView: RecyclerView, viewHolder: RecyclerView.ViewHolder, target: RecyclerView.ViewHolder): Boolean = true
+        override fun onSwiped(viewHolder: RecyclerView.ViewHolder, direction: Int) {
+            if (view != null) {
+                val swipedPosition = viewHolder.adapterPosition
+                val movieEntity = adapter.getSwipedData(swipedPosition)
+                val localDb = MovieBookmarkDatabase.getAppDatabase(requireActivity())
+                movieEntity?.let {
+                    val movieBookmarkEntity = MovieBookmarkEntity(
+                        movieEntity.id,
+                        movieEntity.type,
+                        movieEntity.title,
+                        movieEntity.date,
+                        movieEntity.rating,
+                        movieEntity.poster,
+                        false
+                    )
+                    thread {
+                        localDb?.movieBookmarkDao()?.update(movieBookmarkEntity)
+                    }
+                }
+                val snackBar = Snackbar.make(view as View, R.string.toast_remove_bookmark, Snackbar.LENGTH_LONG)
+                snackBar.setAction(R.string.tag_undo) {
+                    movieEntity?.let {
+                        val movieBookmarkEntity = MovieBookmarkEntity(
+                            movieEntity.id,
+                            movieEntity.type,
+                            movieEntity.title,
+                            movieEntity.date,
+                            movieEntity.rating,
+                            movieEntity.poster,
+                            true
+                        )
+                        thread {
+                            localDb?.movieBookmarkDao()?.update(movieBookmarkEntity)
+                        }
+                    }
+                }
+                snackBar.show()
+            }
+        }
+    })
 
     private fun showProgressBar(state: Boolean) {
         binding.moviesProgressBar.visibility = if (state) View.VISIBLE else View.GONE

@@ -23,18 +23,4 @@ class DetailViewModel(private val theMovieDBRepository: TheMovieDBRepository) : 
         return theMovieDBRepository.getMovieDetail()
     }
 
-    // Dummmy For Unit Testing
-
-    fun setMoviesDetailDummy(detailMovie: DetailMovieEntity) {
-        theMovieDBRepository.setMoviesDetailDummy(detailMovie)
-    }
-
-    fun setTVShowDetailDummy(detailMovie: DetailMovieEntity) {
-        theMovieDBRepository.setTVShowDetailDummy(detailMovie)
-    }
-
-    fun getMovieDetailDummy(movieID: Int): DetailMovieEntity {
-        return theMovieDBRepository.getMovieDetailDummy(movieID)
-    }
-
 }

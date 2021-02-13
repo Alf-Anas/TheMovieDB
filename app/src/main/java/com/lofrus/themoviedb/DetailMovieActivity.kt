@@ -133,9 +133,6 @@ class DetailMovieActivity : AppCompatActivity() {
         viewModel.getStatusError().observe(this, { status ->
             if (status != null) {
                 toastShort(status)
-                if (!EspressoIdlingResource.getEspressoIdlingResource().isIdleNow) {
-                    EspressoIdlingResource.decrement()
-                }
             }
         })
 

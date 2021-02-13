@@ -24,6 +24,7 @@ abstract class NetworkBoundResource<ResultType, RequestType>(private val mExecut
             } else {
                 result.addSource(dbSource) { newData ->
                     result.value = Resource.success(newData)
+
                     //Keep Data Synchronize
                     result.removeSource(dbSource)
                     fetchFromNetwork(dbSource)

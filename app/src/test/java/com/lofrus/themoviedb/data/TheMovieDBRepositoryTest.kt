@@ -2,9 +2,13 @@ package com.lofrus.themoviedb.data
 
 import androidx.arch.core.executor.testing.InstantTaskExecutorRule
 import androidx.lifecycle.MutableLiveData
+import androidx.paging.DataSource
 import com.lofrus.themoviedb.model.DetailMovieEntity
 import com.lofrus.themoviedb.model.MovieEntity
+import com.lofrus.themoviedb.utils.AppExecutors
 import com.lofrus.themoviedb.utils.DataDummy
+import com.lofrus.themoviedb.utils.PagedListUtil
+import com.lofrus.themoviedb.vo.Resource
 import junit.framework.TestCase.assertEquals
 import junit.framework.TestCase.assertNotNull
 import org.junit.Rule
@@ -14,37 +18,62 @@ import org.mockito.Mockito.*
 class TheMovieDBRepositoryTest {
 
     private val remote = mock(RemoteDataSource::class.java)
-    private val theMovieDBRepository = FakeTheMovieDBRepository(remote)
+    private val local = mock(LocalDataSource::class.java)
+    private val appExecutors = mock(AppExecutors::class.java)
+    private val theMovieDBRepository = FakeTheMovieDBRepository(remote, local, appExecutors)
+
+    private val dummyRemoteListMovies = DataDummy.generateRemoteDummyListMovies()
+    private val dummyRemoteListTVShow = DataDummy.generateRemoteDummyListTVShow()
 
     @get:Rule
     var instantTaskExecutorRule = InstantTaskExecutorRule()
 
     @Test
-    fun testSetListMovies() {
-        val theMovieDBRepositoryLocal: FakeTheMovieDBRepository = mock(FakeTheMovieDBRepository::class.java)
-        theMovieDBRepositoryLocal.setListMovies()
-        verify(theMovieDBRepositoryLocal, times(1)).setListMovies()
+    fun testGetListMovies() {
+        val dataSourceFactory = mock(DataSource.Factory::class.java) as DataSource.Factory<Int, MovieEntity>
+        `when`(local.getListMovies()).thenReturn(dataSourceFactory)
+        theMovieDBRepository.getListMovies()
+
+        val listMovie = Resource.success(PagedListUtil.mockPagedList(DataDummy.generateDummyListMovies()))
+        verify(local).getListMovies()
+        assertNotNull(listMovie.data)
+        assertEquals(dummyRemoteListMovies.size.toLong(), listMovie.data?.size?.toLong())
     }
 
     @Test
-    fun testSetListTVShow() {
-        val theMovieDBRepositoryLocal: FakeTheMovieDBRepository = mock(FakeTheMovieDBRepository::class.java)
-        theMovieDBRepositoryLocal.setListTVShow()
-        verify(theMovieDBRepositoryLocal, times(1)).setListTVShow()
+    fun testGetListTVShow() {
+        val dataSourceFactory = mock(DataSource.Factory::class.java) as DataSource.Factory<Int, MovieEntity>
+        `when`(local.getListTVShow()).thenReturn(dataSourceFactory)
+        theMovieDBRepository.getListTVShow()
+
+        val listMovie = Resource.success(PagedListUtil.mockPagedList(DataDummy.generateDummyListTVShow()))
+        verify(local).getListTVShow()
+        assertNotNull(listMovie.data)
+        assertEquals(dummyRemoteListTVShow.size.toLong(), listMovie.data?.size?.toLong())
     }
 
     @Test
-    fun testGetListMovie() {
-        val listMovie = DataDummy.generateRemoteDummyListMovies()
-        val listMovieEntity = MutableLiveData<ArrayList<MovieEntity>>()
-        listMovieEntity.value = listMovie
+    fun testGetListMoviesBookmark() {
+        val dataSourceFactory = mock(DataSource.Factory::class.java) as DataSource.Factory<Int, MovieEntity>
+        `when`(local.getListMoviesBookmark()).thenReturn(dataSourceFactory)
+        theMovieDBRepository.getListMoviesBookmark()
 
-        `when`(remote.listMovie).thenReturn(listMovieEntity)
-        val listMovieDB = theMovieDBRepository.getListMovie().value
-        verify(remote).listMovie
+        val listMovie = Resource.success(PagedListUtil.mockPagedList(DataDummy.generateDummyListMovies()))
+        verify(local).getListMoviesBookmark()
+        assertNotNull(listMovie)
+        assertEquals(dummyRemoteListMovies.size.toLong(), listMovie.data?.size?.toLong())
+    }
 
-        assertNotNull(listMovieDB)
-        assertEquals(7, listMovieDB?.size)
+    @Test
+    fun testGetListTVShowBookmark() {
+        val dataSourceFactory = mock(DataSource.Factory::class.java) as DataSource.Factory<Int, MovieEntity>
+        `when`(local.getListTVShowBookmark()).thenReturn(dataSourceFactory)
+        theMovieDBRepository.getListTVShowBookmark()
+
+        val listMovie = Resource.success(PagedListUtil.mockPagedList(DataDummy.generateDummyListTVShow()))
+        verify(local).getListTVShowBookmark()
+        assertNotNull(listMovie.data)
+        assertEquals(dummyRemoteListTVShow.size.toLong(), listMovie.data?.size?.toLong())
     }
 
     @Test

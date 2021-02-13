@@ -5,7 +5,7 @@ import com.lofrus.themoviedb.model.MovieEntity
 
 object DataDummy {
 
-    fun generateDummyListMovies(): ArrayList<MovieEntity> {
+    fun generateDummyListMovies(): List<MovieEntity> {
         val movieEntity = ArrayList<MovieEntity>()
         movieEntity.add(MovieEntity(508442,
                 0,
